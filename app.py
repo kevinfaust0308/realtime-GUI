@@ -3,7 +3,7 @@ import mss
 import numpy as np
 import cv2
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QGroupBox, QHBoxLayout, QFrame, QMessageBox, QStyledItemDelegate, QScrollArea, QGridLayout
+    QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QGroupBox, QHBoxLayout, QFrame, QMessageBox, QStyledItemDelegate, QSizePolicy, QGridLayout
 )
 from PyQt6.QtGui import QPixmap, QImage, QStandardItem, QStandardItemModel
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QRect, QSize
@@ -70,13 +70,21 @@ class ImageClassificationApp(QWidget):
         self.selected_region = None
         self.thread = None
 
+
     def initUI(self):
         """Initialize GUI components"""
-        self.setWindowTitle("Realtime Classification")
+        self.setWindowTitle("Realtime Inference")
         self.setGeometry(100, 100, 600, 400)
 
-        main_layout = QVBoxLayout()
-        main_layout.addSpacing(10)
+        # main_layout_main = QHBoxLayout()
+        # main_layout_main.addSpacing(10)
+
+        main_layout_l = QVBoxLayout()
+        # main_layout.addSpacing(10)
+
+        main_layout_r = QVBoxLayout()
+
+
 
 
 
@@ -140,7 +148,7 @@ class ImageClassificationApp(QWidget):
 
 
         model_group.setLayout(model_layout)
-        main_layout.addWidget(model_group)
+        main_layout_l.addWidget(model_group)
 
 
 
@@ -155,8 +163,7 @@ class ImageClassificationApp(QWidget):
         class_layout.addWidget(self.class_container)
 
         class_group.setLayout(class_layout)
-        main_layout.addWidget(class_group)
-
+        main_layout_l.addWidget(class_group)
 
 
 
@@ -164,7 +171,7 @@ class ImageClassificationApp(QWidget):
         separator = QFrame()
         separator.setFrameShape(QFrame.Shape.HLine)
         separator.setFrameShadow(QFrame.Shadow.Sunken)
-        main_layout.addWidget(separator)
+        main_layout_l.addWidget(separator)
 
         ##############################################################################
 
@@ -190,22 +197,22 @@ class ImageClassificationApp(QWidget):
 
 
         capture_group.setLayout(capture_layout)
-        main_layout.addWidget(capture_group)
+        main_layout_l.addWidget(capture_group)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.Shape.HLine)
         separator.setFrameShadow(QFrame.Shadow.Sunken)
-        main_layout.addWidget(separator)
+        main_layout_l.addWidget(separator)
 
         self.show_selected_model_info()  # Force initial run (will be run everytime a model is selected from the dropdown)
 
         ##############################################################################
 
-        classify_group = QGroupBox("Classification Controls")
+        classify_group = QGroupBox("Inference Controls")
         classify_layout = QVBoxLayout()
 
         # Button to start classification
-        self.start_btn = QPushButton("Start Classification", self)
+        self.start_btn = QPushButton("Start", self)
         self.start_btn.clicked.connect(self.start_classification)
         classify_layout.addWidget(self.start_btn)
         self.start_btn.setEnabled(False)
@@ -217,16 +224,16 @@ class ImageClassificationApp(QWidget):
         self.stop_btn.setEnabled(False)
 
         classify_group.setLayout(classify_layout)
-        main_layout.addWidget(classify_group)
+        main_layout_r.addWidget(classify_group)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.Shape.HLine)
         separator.setFrameShadow(QFrame.Shadow.Sunken)
-        main_layout.addWidget(separator)
+        main_layout_r.addWidget(separator)
 
         ##############################################################################
 
-        display_group = QGroupBox("Classification Output")
+        display_group = QGroupBox("Inference Output")
         display_layout = QVBoxLayout()
 
 
@@ -236,11 +243,12 @@ class ImageClassificationApp(QWidget):
         display_layout.addWidget(self.image_label)
 
         # Classification result display
-        self.result_label = QLabel("Result: ")
+        self.result_label = QLabel("Result:")
         display_layout.addWidget(self.result_label)
 
         display_group.setLayout(display_layout)
-        main_layout.addWidget(display_group)
+        main_layout_r.addWidget(display_group)
+
 
         ##############################################################################
 
@@ -249,6 +257,20 @@ class ImageClassificationApp(QWidget):
         classify_group.setStyleSheet("QGroupBox { font-size: 14px; font-weight: bold;  }")
         display_group.setStyleSheet("QGroupBox { font-size: 14px; font-weight: bold;  }")
 
+
+        # This is to make layout_l and layout_r side-by-side
+        # Wrap layouts inside QWidget containers
+        widget1 = QWidget()
+        widget1.setLayout(main_layout_l)
+        widget2 = QWidget()
+        widget2.setLayout(main_layout_r)
+        widget2.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        # Create the main HBoxLayout and add the widgets
+        main_layout = QHBoxLayout()
+        main_layout.addSpacing(10)
+        main_layout.addWidget(widget1)
+        main_layout.addWidget(widget2)
 
 
         self.setLayout(main_layout)

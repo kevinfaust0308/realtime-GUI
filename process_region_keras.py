@@ -19,7 +19,7 @@ def process_region(region, **kwargs):
     frame = np.array(screenshot, dtype=np.uint8)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
     frame = frame[:max((frame.shape[0] // tile_size) * tile_size, tile_size),
-            max((frame.shape[1] // tile_size) * tile_size, tile_size), :]
+            :max((frame.shape[1] // tile_size) * tile_size, tile_size), :]
 
     slices = extract_tiles(frame, tile_size)
 
