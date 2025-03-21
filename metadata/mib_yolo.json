@@ -1,0 +1,13 @@
+{
+  "repo": "MIB/best.pt",
+  "repo_src": "Local",
+  "info": "TODO",
+  "mpp": 0.504,
+  "model": "YOLOv11",
+  "tile_size": 128,
+  "classes": [
+    "Positive",
+    "Negative",
+    "Misc"
+  ]
+}
