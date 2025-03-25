@@ -46,7 +46,7 @@ class ClassificationThread(QThread):
         self.model_name = model_name
         self.running = True
 
-        self.model, self.process_region = load_model(model_to_info[model_name]['repo'])
+        self.model, self.process_region = load_model(model_to_info[model_name])
         self.metadata = model_to_info[model_name]
 
     def run(self):
@@ -199,10 +199,10 @@ class ImageClassificationApp(QWidget):
         capture_group.setLayout(capture_layout)
         main_layout_l.addWidget(capture_group)
 
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setFrameShadow(QFrame.Shadow.Sunken)
-        main_layout_l.addWidget(separator)
+        # separator = QFrame()
+        # separator.setFrameShape(QFrame.Shape.HLine)
+        # separator.setFrameShadow(QFrame.Shadow.Sunken)
+        # main_layout_l.addWidget(separator)
 
         self.show_selected_model_info()  # Force initial run (will be run everytime a model is selected from the dropdown)
 

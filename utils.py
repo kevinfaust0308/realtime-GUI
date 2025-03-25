@@ -24,20 +24,23 @@ def extract_tiles(frame, tile_size):
     return slices
 
 
-def load_model(repo_id):
-    if repo_id.startswith("diamandislabii/"):
+def load_model(model_info):
 
-        from huggingface_hub import from_pretrained_keras
+    if model_info['repo_src'] == 'HuggingFace':
+        if model_info['model'] == 'VGG19':
+            from huggingface_hub import from_pretrained_keras
 
-        model = from_pretrained_keras(repo_id)
+            model = from_pretrained_keras(model_info['repo'])
 
-        from process_region_keras import process_region
-        return model, process_region
+            from process_region_keras import process_region
+            return model, process_region
 
-    else:
-        from ultralytics import YOLO
+    elif model_info['repo_src'] == 'Local':
+        if model_info['model'] == 'YOLO':
+            from ultralytics import YOLO
 
-        model = YOLO(repo_id)
+            model = YOLO(model_info['repo'])
 
-        from process_region_YOLO import process_region
-        return model, process_region
+            from process_region_YOLO import process_region
+            return model, process_region
+
