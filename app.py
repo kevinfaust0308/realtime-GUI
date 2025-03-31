@@ -74,7 +74,7 @@ class ImageClassificationApp(QWidget):
     def initUI(self):
         """Initialize GUI components"""
         self.setWindowTitle("Realtime Inference")
-        self.setGeometry(100, 100, 600, 400)
+        # self.setGeometry(100, 100, 600, 400)
 
         # main_layout_main = QHBoxLayout()
         # main_layout_main.addSpacing(10)
@@ -137,7 +137,14 @@ class ImageClassificationApp(QWidget):
         self.model_dropdown.currentIndexChanged.connect(self.show_selected_model_info)
         model_layout.addWidget(self.model_dropdown)
 
-        ### Info button
+        ### Class & Info button
+
+        self.classes_button = QPushButton("Classes")
+        self.classes_button.setFixedSize(100, 30)
+        self.classes_button.clicked.connect(self.show_classes)  # Connect to classes popup function
+        self.classes_button.setStyleSheet("QPushButton { margin-top: -5px;  }")  # Need-to to align with dropdown...
+        model_layout.addWidget(self.classes_button)
+
 
         self.info_button = QPushButton("ℹ️️")
         self.info_button.setFixedSize(30, 30)  # Make it small
@@ -150,28 +157,6 @@ class ImageClassificationApp(QWidget):
         model_group.setLayout(model_layout)
         main_layout_l.addWidget(model_group)
 
-
-
-        ### Class display
-
-
-        class_group = QGroupBox("Classes")
-        class_layout = QVBoxLayout()
-
-        self.class_container = QWidget()
-        self.class_layout = QGridLayout(self.class_container)
-        class_layout.addWidget(self.class_container)
-
-        class_group.setLayout(class_layout)
-        main_layout_l.addWidget(class_group)
-
-
-
-
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setFrameShadow(QFrame.Shadow.Sunken)
-        main_layout_l.addWidget(separator)
 
         ##############################################################################
 
@@ -264,6 +249,7 @@ class ImageClassificationApp(QWidget):
         widget1.setLayout(main_layout_l)
         widget2 = QWidget()
         widget2.setLayout(main_layout_r)
+        widget1.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         widget2.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         # Create the main HBoxLayout and add the widgets
@@ -274,6 +260,9 @@ class ImageClassificationApp(QWidget):
 
 
         self.setLayout(main_layout)
+
+        # Automatically resize window to fit contents
+        self.adjustSize()
 
         self.setFocus() # Prevents any textboxes from getting auto-focused when the application first starts
 
@@ -388,6 +377,19 @@ class ImageClassificationApp(QWidget):
         msg.setIcon(QMessageBox.Icon.Information)
         msg.exec()  # Show the popup
 
+    def show_classes(self):
+        """Displays a popup with information about the selected model's classes."""
+
+        selected_model = self.model_dropdown.currentText()
+
+        classes = sorted(model_to_info[selected_model]['classes'])
+
+        from custom_widgets.TablePopup import TablePopup
+        popup = TablePopup(self, items=classes, title="Classes")
+        popup.exec()
+
+
+
     def show_selected_model_info(self):
         """Updates UI text based on the selected model."""
         selected_model = self.model_dropdown.currentText()
@@ -400,37 +402,6 @@ class ImageClassificationApp(QWidget):
 
         # Update label text dynamically
         self.capture_recommendation.setText(f"Recommended Capture Size:\n{res}")
-
-        ###
-
-        # Clear previous classes
-        for i in reversed(range(self.class_layout.count())):
-            widget = self.class_layout.itemAt(i).widget()
-            if widget:
-                widget.setParent(None)
-
-        # Get classes for the selected model
-        classes = sorted(model_to_info[selected_model]['classes'])
-
-        # Add class labels with rectangular borders
-        row, col = 0, 0
-        for cls in classes:
-            label = QLabel(cls)
-            label.setStyleSheet(
-                "border: 1px solid black; padding-top: 1px; padding-bottom: 1px; margin: 0px; font-size: 14px; background-color: #f0f0f0;"
-            )
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.class_layout.addWidget(label, row, col)
-
-            # Arrange classes in a grid (2 columns)
-            col += 1
-            if col > 1:  # 2 columns per row
-                col = 0
-                row += 1
-
-        self.class_container.adjustSize()
-
-
 
 
 
