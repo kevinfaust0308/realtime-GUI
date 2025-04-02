@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QGroupBox, QHBoxLayout, QFrame, QMessageBox, QStyledItemDelegate, QSizePolicy, QGridLayout
 )
 from PyQt6.QtGui import QPixmap, QImage, QStandardItem, QStandardItemModel
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QRect, QSize
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QRect, QSize, QTimer
 from pynput import mouse
 import time
 import json
@@ -16,7 +16,7 @@ from utils import load_model
 dropdown_categories = [
     ("▶️ Classification Models", [
         {'name': "Tumor Compact (VGG19)", 'info_file': 'metadata/tumor_compact_vgg.json'},
-        {'name': "Tumor Compact (EfficientNetV2) (Test)", 'info_file': 'metadata/tumor_compact_efficientnet.json'}
+        # {'name': "Tumor Compact (EfficientNetV2) (Test)", 'info_file': 'metadata/tumor_compact_efficientnet.json'}
     ]),
     ("▶️ Segmentation Models", [
         {'name': "MIB (YOLO)", 'info_file': 'metadata/mib_yolo.json'}
@@ -42,7 +42,7 @@ class ClassificationThread(QThread):
 
     def __init__(self, ui_instance, model_name):
         super().__init__()
-        self.ui_instance = ui_instance # So that the selected_region field can be updated and used here in real-time
+        self.ui_instance = ui_instance # So that fields from the UI can be updated and used here in real-time
         self.model_name = model_name
         self.running = True
 
@@ -52,7 +52,13 @@ class ClassificationThread(QThread):
     def run(self):
         while self.running:
             start = time.time()
-            frame, result = self.process_region(self.ui_instance.selected_region, **{'model': self.model, 'metadata': self.metadata})
+
+            additional_configs = {
+                label: input_field.text()
+                for label, input_field in self.ui_instance.additional_config_inputs.items()
+            }
+
+            frame, result = self.process_region(self.ui_instance.selected_region, **{'model': self.model, 'metadata': self.metadata, 'additional_configs': additional_configs})
             result += '\n({:.2f} sec)'.format(time.time() - start)
 
             self.update_image.emit(frame, result)
@@ -66,8 +72,10 @@ class ClassificationThread(QThread):
 class ImageClassificationApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.additional_config_inputs = {}  # label -> QLineEdit reference
         self.selected_region = None
+
+        self.initUI()
         self.thread = None
 
 
@@ -134,21 +142,21 @@ class ImageClassificationApp(QWidget):
                 model_dropdown_items.appendRow(QStandardItem(m['name']))
 
         self.model_dropdown.setModel(model_dropdown_items)
-        self.model_dropdown.currentIndexChanged.connect(self.show_selected_model_info)
+        self.model_dropdown.currentIndexChanged.connect(self.update_selected_model_info)
         model_layout.addWidget(self.model_dropdown)
 
         ### Class & Info button
 
         self.classes_button = QPushButton("Classes")
         self.classes_button.setFixedSize(100, 30)
-        self.classes_button.clicked.connect(self.show_classes)  # Connect to classes popup function
+        self.classes_button.clicked.connect(self.show_classes_popup)  # Connect to classes popup function
         self.classes_button.setStyleSheet("QPushButton { margin-top: -5px;  }")  # Need-to to align with dropdown...
         model_layout.addWidget(self.classes_button)
 
 
         self.info_button = QPushButton("ℹ️️")
         self.info_button.setFixedSize(30, 30)  # Make it small
-        self.info_button.clicked.connect(self.show_model_info)  # Connect to info popup function
+        self.info_button.clicked.connect(self.show_model_popup)  # Connect to info popup function
         self.info_button.setStyleSheet("QPushButton { margin-top: -5px;  }") # Need-to to align with dropdown...
         model_layout.addWidget(self.info_button)
 
@@ -156,6 +164,22 @@ class ImageClassificationApp(QWidget):
 
         model_group.setLayout(model_layout)
         main_layout_l.addWidget(model_group)
+
+
+        ##############################################################################
+
+
+        # Group box for additional configs
+        self.config_group = QGroupBox("Additional Configs")
+        self.config_layout = QVBoxLayout()
+        self.config_group.setLayout(self.config_layout)
+
+        main_layout_l.addWidget(self.config_group)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setFrameShadow(QFrame.Shadow.Sunken)
+        main_layout_l.addWidget(separator)
 
 
         ##############################################################################
@@ -189,7 +213,7 @@ class ImageClassificationApp(QWidget):
         # separator.setFrameShadow(QFrame.Shadow.Sunken)
         # main_layout_l.addWidget(separator)
 
-        self.show_selected_model_info()  # Force initial run (will be run everytime a model is selected from the dropdown)
+        self.update_selected_model_info()  # Force initial run (will be run everytime a model is selected from the dropdown)
 
         ##############################################################################
 
@@ -255,8 +279,8 @@ class ImageClassificationApp(QWidget):
         # Create the main HBoxLayout and add the widgets
         main_layout = QHBoxLayout()
         main_layout.addSpacing(10)
-        main_layout.addWidget(widget1)
-        main_layout.addWidget(widget2)
+        main_layout.addWidget(widget1, alignment=Qt.AlignmentFlag.AlignTop)
+        main_layout.addWidget(widget2, alignment=Qt.AlignmentFlag.AlignTop)
 
 
         self.setLayout(main_layout)
@@ -358,12 +382,15 @@ class ImageClassificationApp(QWidget):
         self.image_label.setPixmap(pixmap.scaled(400, 400, Qt.AspectRatioMode.KeepAspectRatio))
         self.result_label.setText(f"Result: {result}")
 
+        # For window re-sizing
+        QTimer.singleShot(0, self._finalize_resize)
+
     def closeEvent(self, event):
         """Ensure the thread stops when closing the app"""
         self.stop_classification()
         event.accept()
 
-    def show_model_info(self):
+    def show_model_popup(self):
         """Displays a popup with information about the selected model."""
         selected_model = self.model_dropdown.currentText()
 
@@ -377,7 +404,7 @@ class ImageClassificationApp(QWidget):
         msg.setIcon(QMessageBox.Icon.Information)
         msg.exec()  # Show the popup
 
-    def show_classes(self):
+    def show_classes_popup(self):
         """Displays a popup with information about the selected model's classes."""
 
         selected_model = self.model_dropdown.currentText()
@@ -390,7 +417,7 @@ class ImageClassificationApp(QWidget):
 
 
 
-    def show_selected_model_info(self):
+    def update_selected_model_info(self):
         """Updates UI text based on the selected model."""
         selected_model = self.model_dropdown.currentText()
 
@@ -402,6 +429,55 @@ class ImageClassificationApp(QWidget):
 
         # Update label text dynamically
         self.capture_recommendation.setText(f"Recommended Capture Size:\n{res}")
+
+
+        ################################################
+
+        additional_configs = model_to_info[selected_model]['additional_configs']
+
+        def clear_layout(layout):
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                child_layout = item.layout()
+
+                if widget is not None:
+                    widget.deleteLater()
+                elif child_layout is not None:
+                    clear_layout(child_layout)  # Recursively delete children
+
+        # Clear existing widgets
+        clear_layout(self.config_layout)
+
+        self.additional_config_inputs = {}
+
+        if additional_configs:
+            # Show or hide the group box depending on whether there are configs
+            self.config_group.setVisible(True)
+
+            # Add new widgets for current model
+            for config_name, config_val in additional_configs.items():
+                row = QHBoxLayout()
+                label = QLabel(config_name)
+                line_edit = QLineEdit()
+                line_edit.setText(str(config_val))
+                row.addWidget(label)
+                row.addWidget(line_edit)
+                self.config_layout.addLayout(row)
+
+                self.additional_config_inputs[config_name] = line_edit
+
+        else:
+            # Show or hide the group box depending on whether there are configs
+            self.config_group.setVisible(False)
+
+        # For window re-sizing (window will shrink/expand if configs were removed/added)
+        QTimer.singleShot(0, self._finalize_resize)
+
+    def _finalize_resize(self):
+        self.setFixedSize(self.sizeHint())
+        self.setMinimumSize(0, 0)
+        self.setMaximumSize(16777215, 16777215)
 
 
 

@@ -9,5 +9,6 @@
     "Positive",
     "Negative",
     "Misc"
-  ]
+  ],
+  "additional_configs": {}
 }
