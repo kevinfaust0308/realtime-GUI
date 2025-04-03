@@ -360,6 +360,7 @@ class ImageClassificationApp(QWidget):
 
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
+        self.model_dropdown.setEnabled(False)
 
     def stop_classification(self):
         """Stop the classification thread"""
@@ -370,6 +371,7 @@ class ImageClassificationApp(QWidget):
 
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
+        self.model_dropdown.setEnabled(True)
 
     def update_display(self, frame, result):
         """Update the GUI with the latest image and classification result"""
