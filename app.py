@@ -46,7 +46,11 @@ class ClassificationThread(QThread):
         self.model_name = model_name
         self.running = True
 
-        self.model, self.process_region = load_model(model_to_info[model_name])
+        res = load_model(model_to_info[model_name])
+        self.model = res['model']
+        self.process_region = res['process_region_func']
+        self.using_gpu = res['using_gpu']
+
         self.metadata = model_to_info[model_name]
 
     def run(self):
@@ -220,6 +224,29 @@ class ImageClassificationApp(QWidget):
         classify_group = QGroupBox("Inference Controls")
         classify_layout = QVBoxLayout()
 
+
+
+
+        ##### USING GPU STATUS ICON
+        # Create container widget
+        status_widget = QWidget()
+        status_layout = QHBoxLayout(status_widget)
+        status_layout.setContentsMargins(0, 0, 0, 0)  # Optional: remove padding
+        status_layout.setSpacing(6)  # Spacing between dot and label
+
+        from custom_widgets.PulsingDot import PulsingDot
+        self.using_gpu_icon = PulsingDot(color="orange")
+        label = QLabel("GPU")
+        label.setStyleSheet("QLabel { margin-top: -3px;  }")  # Need-to to align with dot...
+
+        status_layout.addWidget(self.using_gpu_icon)
+        status_layout.addWidget(label)
+
+        classify_layout.addWidget(status_widget)
+
+        ####
+
+
         # Button to start classification
         self.start_btn = QPushButton("Start", self)
         self.start_btn.clicked.connect(self.start_classification)
@@ -358,6 +385,11 @@ class ImageClassificationApp(QWidget):
         self.thread.update_image.connect(self.update_display)
         self.thread.start()
 
+        if self.thread.using_gpu:
+            self.using_gpu_icon.set_color("green")
+        else:
+            self.using_gpu_icon.set_color("red")
+
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
         self.model_dropdown.setEnabled(False)
@@ -372,6 +404,7 @@ class ImageClassificationApp(QWidget):
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         self.model_dropdown.setEnabled(True)
+        self.using_gpu_icon.set_color("orange")
 
     def update_display(self, frame, result):
         """Update the GUI with the latest image and classification result"""

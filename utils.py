@@ -26,21 +26,47 @@ def extract_tiles(frame, tile_size):
 
 def load_model(model_info):
 
+    res = {
+        'model': None,
+        'process_region_func': None,
+        'using_gpu': False
+    }
+
     if model_info['repo_src'] == 'HuggingFace':
-        if model_info['model'] == 'VGG19':
-            from huggingface_hub import from_pretrained_keras
+        if model_info['model'] == 'ONNX':
 
-            model = from_pretrained_keras(model_info['repo'])
+            from huggingface_hub import hf_hub_download
+            import onnxruntime as ort
 
-            from process_region_keras import process_region
-            return model, process_region
+            model_path = hf_hub_download(repo_id=model_info['repo'], filename="model.onnx")
+
+            # Load ONNX model with GPU support if available
+            available_providers = ort.get_available_providers()
+            if 'CUDAExecutionProvider' in available_providers:
+                providers = ['CUDAExecutionProvider']
+            else:
+                providers = ['CPUExecutionProvider']
+
+            session = ort.InferenceSession(model_path, providers=providers)
+
+            from process_region_onnx import process_region
+
+            res['model'] = session
+            res['process_region_func'] = process_region
+            res['using_gpu'] = 'CUDAExecutionProvider' in available_providers
+
+            return res
 
     elif model_info['repo_src'] == 'Local':
         if model_info['model'] == 'YOLO':
             from ultralytics import YOLO
-
-            model = YOLO(model_info['repo'])
-
+            import torch
             from process_region_YOLO import process_region
-            return model, process_region
 
+            res['model'] = YOLO(model_info['repo'])
+            res['process_region_func'] = process_region
+            res['using_gpu'] = torch.cuda.is_available()
+
+            return res
+
+    return res

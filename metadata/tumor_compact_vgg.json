@@ -1,9 +1,9 @@
 {
-  "repo": "diamandislabii/4-tumor-compact",
+  "repo": "diamandislabii/4-tumor-compact-onnx",
   "repo_src": "HuggingFace",
   "info": "This H&E brain tumor classifier was developed using transfer learning on a histology optimized version of the VGG19 CNN (DOI: 10.1038/s42256-019-0068-6) and trained to recognize the four most common brain tumor types and other surrounding tissue elements. H&E-stained images patches (dimensions: 1024 x 1024 px) and annotations were taken from previous publicly available datasets (PMID: 35156037).",
   "mpp": 0.504,
-  "model": "VGG19",
+  "model": "ONNX",
   "tile_size": 1024,
   "classes": [
     "Acute hemorrhage",
@@ -23,5 +23,5 @@
     "Schwannian/spindled Histology",
     "White matter"
   ],
-  "additional_configs": {}
+  "additional_configs": {"dummy_value_1":  "10", "dummy_value_2":  "20"}
 }

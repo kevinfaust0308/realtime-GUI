@@ -3,7 +3,7 @@
   "repo_src": "HuggingFace",
   "info": "This H&E brain tumor classifier was developed using transfer learning on the EfficientNetV2S CNN and trained to recognize the four most common brain tumor types and other surrounding tissue elements. H&E-stained images patches (dimensions: 1024 x 1024 px) and annotations were taken from previous publicly available datasets (PMID: 35156037).",
   "mpp": 0.504,
-  "model": "VGG19",
+  "model": "Keras",
   "tile_size": 1024,
   "classes": [
     "Acute hemorrhage",

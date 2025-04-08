@@ -24,7 +24,10 @@ def process_region(region, **kwargs):
     slices = extract_tiles(frame, tile_size)
 
     batch = np.divide(np.array(slices), 255)
-    confs = model.predict_on_batch(batch)
+
+    inputs = {model.get_inputs()[0].name: batch.astype(np.float32)}
+    confs = model.run(None, inputs)[0]
+
     confs = np.mean(confs, axis=0)
     top_3_idx = np.argsort(-confs)[:3]
 

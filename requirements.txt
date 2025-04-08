@@ -2,7 +2,9 @@ huggingface_hub
 mss
 pynput
 opencv-python
-tensorflow==2.15.0
 pyqt6
+
+onnxruntime # CPU version
+# onnxruntime-gpu # GPU version
 
 ultralytics # yolo
