@@ -16,6 +16,7 @@ from utils import load_model
 dropdown_categories = [
     ("▶️ Classification Models", [
         {'name': "Tumor Compact (VGG19)", 'info_file': 'metadata/tumor_compact_vgg.json'},
+        {'name': "Tumor Compact (Only Tumor) (VGG19)", 'info_file': 'metadata/tumor_only_tumor_compact_vgg.json'},
         # {'name': "Tumor Compact (EfficientNetV2) (Test)", 'info_file': 'metadata/tumor_compact_efficientnet.json'}
     ]),
     ("▶️ Segmentation Models", [
@@ -235,8 +236,8 @@ class ImageClassificationApp(QWidget):
         status_layout.setSpacing(6)  # Spacing between dot and label
 
         from custom_widgets.PulsingDot import PulsingDot
-        self.using_gpu_icon = PulsingDot(color="orange")
-        label = QLabel("GPU")
+        self.using_gpu_icon = PulsingDot(color="grey")
+        label = QLabel("Using GPU")
         label.setStyleSheet("QLabel { margin-top: -3px;  }")  # Need-to to align with dot...
 
         status_layout.addWidget(self.using_gpu_icon)
@@ -404,7 +405,7 @@ class ImageClassificationApp(QWidget):
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         self.model_dropdown.setEnabled(True)
-        self.using_gpu_icon.set_color("orange")
+        self.using_gpu_icon.set_color("grey")
 
     def update_display(self, frame, result):
         """Update the GUI with the latest image and classification result"""
