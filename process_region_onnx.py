@@ -33,7 +33,7 @@ def process_region(region, **kwargs):
 
     res = ''
     for idx in top_3_idx:
-        if confs[idx] < float(kwargs['additional_configs']['min_conf']):
+        if confs[idx] < float(kwargs['additional_configs'].get('min_conf', 0)):
             break
 
         res += '{}: {:.4f}\n'.format(metadata['classes'][idx], confs[idx])
