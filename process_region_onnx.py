@@ -34,13 +34,11 @@ def process_region(region, **kwargs):
     res = ''
     for idx in top_3_idx:
         # this additional config may 1. not be specified 2. may not be a number/empty (empty string)
-        min_conf = 0
-        if 'min_conf' in kwargs['additional_configs']:
-            min_conf = kwargs['additional_configs']['min_conf']
-            if isinstance(min_conf, int) or isinstance(min_conf, float):
-                min_conf = float(min_conf)
-            else:
-                min_conf = 0
+        min_conf = kwargs['additional_configs'].get('min_conf', 0)
+        try:
+            min_conf = float(min_conf)
+        except:
+            min_conf = 0
 
         if confs[idx] < min_conf:
             break
