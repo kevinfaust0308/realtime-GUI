@@ -23,5 +23,5 @@
     "Schwannian/spindled Histology",
     "White matter"
   ],
-  "additional_configs": {"dummy_value_1":  "10", "dummy_value_2":  "20"}
+  "additional_configs": {"min_conf":  "0.5"}
 }
