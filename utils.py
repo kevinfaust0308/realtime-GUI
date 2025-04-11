@@ -36,6 +36,9 @@ def load_model(model_info):
         if model_info['model'] == 'ONNX':
 
             from huggingface_hub import hf_hub_download
+            # Import torch will preload necessary DLLs. It needs to be done before creating session.
+            # REQUIRED FOR GPU TO WORK
+            import torch
             import onnxruntime as ort
 
             model_path = hf_hub_download(repo_id=model_info['repo'], filename="model.onnx")
