@@ -38,6 +38,10 @@ def load_model(model_info):
             from huggingface_hub import hf_hub_download
             import onnxruntime as ort
 
+            # Preload necessary DLLs
+            # For GPU related (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#compatibility-with-pytorch)
+            ort.preload_dlls()
+
             model_path = hf_hub_download(repo_id=model_info['repo'], filename="model.onnx")
 
             # Load ONNX model with GPU support if available
