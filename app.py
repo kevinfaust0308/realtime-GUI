@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QRect, QSize, QTimer
 from pynput import mouse
 import time
 import json
+import os
 
 from utils import load_model
 
@@ -28,13 +29,20 @@ dropdown_categories = [
 
 ########################################################################
 
+def resource_path(relative_path):
+    """Get absolute path to resource (for dev and for PyInstaller onefile mode)"""
+    if hasattr(sys, '_MEIPASS'):
+        # _MEIPASS is the temp folder where PyInstaller unpacks files
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+
 # Mapping of model name to metadata data
 model_to_info = {}
 for _, _v in dropdown_categories:
     for __v in _v:
-        with open(__v['info_file']) as f:
+        with open(resource_path(__v['info_file'])) as f:
             model_to_info[__v['name']] = json.load(f)
-
 
 
 # Worker thread for continuous image classification
