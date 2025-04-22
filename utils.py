@@ -1,3 +1,14 @@
+import os
+import sys
+
+# Always use this for accessing any local path
+def resource_path(relative_path):
+    """Get absolute path to resource (for dev and for PyInstaller onefile mode)"""
+    if hasattr(sys, '_MEIPASS'):
+        # _MEIPASS is the temp folder where PyInstaller unpacks files
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 def extract_tiles(frame, tile_size):
     slices = []
 
@@ -61,12 +72,13 @@ def load_model(model_info):
             return res
 
     elif model_info['repo_src'] == 'Local':
+
         if model_info['model'] == 'YOLO':
             from ultralytics import YOLO
             import torch
             from process_region_YOLO import process_region
 
-            res['model'] = YOLO(model_info['repo'])
+            res['model'] = YOLO(resource_path(model_info['repo']))
             res['process_region_func'] = process_region
             res['using_gpu'] = torch.cuda.is_available()
 

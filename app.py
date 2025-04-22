@@ -10,9 +10,8 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QRect, QSize, QTimer
 from pynput import mouse
 import time
 import json
-import os
 
-from utils import load_model
+from utils import load_model, resource_path
 
 dropdown_categories = [
     ("▶️ Classification Models", [
@@ -28,13 +27,6 @@ dropdown_categories = [
 
 
 ########################################################################
-
-def resource_path(relative_path):
-    """Get absolute path to resource (for dev and for PyInstaller onefile mode)"""
-    if hasattr(sys, '_MEIPASS'):
-        # _MEIPASS is the temp folder where PyInstaller unpacks files
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
 
 
 # Mapping of model name to metadata data
